@@ -68,6 +68,8 @@ class TruefalseFinalScreen extends StatelessWidget {
                     SizedBox(height: 15),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 40),
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -78,7 +80,7 @@ class TruefalseFinalScreen extends StatelessWidget {
                               color: Colors.white,
                               border: Border.all(
                                 color: Colors.black,
-                                width: 1.5,
+                                width: 1.0,
                               ),
                               borderRadius: BorderRadius.circular(5),
                             ),
@@ -131,6 +133,7 @@ class TruefalseFinalScreen extends StatelessWidget {
                           ),
                         ],
                       ),
+                    ),
                     ),
                     SizedBox(height: 60),
                     Material(
