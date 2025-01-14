@@ -430,6 +430,30 @@ class DatabaseHelper {
     return await db.query('Mahasiswa');
   }
 
+  //insert mahasiswa
+  Future<int> insertUser(Map<String, dynamic> user) async {
+    final db = await database;
+    return await db.insert('Mahasiswa', user);// insert data ke tabel mahasiswa
+  }
+  //update mahasiswa
+  Future<int> updateUser(Map<String, dynamic> user) async{
+    final db = await database;
+    return await db.update(
+      'Mahasiswa',
+      user,
+      where:'user_id = ?',
+      whereArgs: [user['user_id']],// kondisi berdasarkan user_id
+    );
+  }
+  //delete mahasiswa
+  Future<int> deleteUser(int userId) async {
+    final db = await database;
+    return await db.delete(
+      'Mahasiswa',
+      where: 'user_id = ?',
+      whereArgs: [userId], //kondisi berdasarkan user id
+    );
+  }
 
   Future<List<String>> getQuizByTypeAndSubject(String type,
       String subject) async {
