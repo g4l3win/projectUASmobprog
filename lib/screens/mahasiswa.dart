@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:quizdb/database/database_helper.dart'; // Make sure this is your correct import for the database helper
+import 'package:quizdb/database/database_helper.dart';
 
 class Mahasiswa extends StatefulWidget {
   @override
@@ -7,74 +7,182 @@ class Mahasiswa extends StatefulWidget {
 }
 
 class _MahasiswaState extends State<Mahasiswa> {
-  // This will hold the future result that we want to display
   late Future<List<Map<String, dynamic>>> users;
+  final dbHelper = DatabaseHelper();
+  final TextEditingController searchController = TextEditingController();
+
+  List<Map<String, dynamic>> allUsers = []; // Semua data mahasiswa
+  List<Map<String, dynamic>> filteredUsers = []; // Data mahasiswa yang difilter (hasil pencarian)
 
   @override
   void initState() {
     super.initState();
-    users = _fetchUsers();  // Fetch users when the page is first initialized
+    _loadUsers(); // Ambil semua data mahasiswa saat halaman pertama kali dimuat
   }
 
-  // Function to fetch all users (mahasiswa) from the database
-  Future<List<Map<String, dynamic>>> _fetchUsers() async {
-    final userList = await DatabaseHelper().getUsers(); // Call your getUsers method
-    return userList;
+  // Fungsi untuk memuat semua data mahasiswa
+  Future<void> _loadUsers() async {
+    final userList = await dbHelper.getUsers(); // Memanggil semua mahasiswa dari database
+    setState(() {
+      allUsers = userList; // Simpan ke dalam daftar utama
+      filteredUsers = userList; // Awalnya filtered sama dengan semua mahasiswa
+    });
+  }
+
+  // Fungsi untuk mencari mahasiswa berdasarkan input search bar
+  void _searchUsers(String query) {
+    final results = allUsers.where((user) {
+      final name = user['name'].toLowerCase();
+      final userId = user['user_id'].toString();
+      final input = query.toLowerCase();
+
+      return name.contains(input) || userId.contains(input); // Cocokkan nama atau user_id
+    }).toList();
+
+    setState(() {
+      filteredUsers = results; // Perbarui hasil pencarian
+    });
+  }
+
+  // Fungsi untuk menambahkan mahasiswa
+  Future<void> _addUser() async {
+    final nameController = TextEditingController();
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Tambah Mahasiswa"),
+          content: TextField(
+            controller: nameController,
+            decoration: const InputDecoration(labelText: "Nama Mahasiswa"),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Batal"),
+            ),
+            TextButton(
+              onPressed: () async {
+                if (nameController.text.isNotEmpty) {
+                  await dbHelper.insertUser({'name': nameController.text});
+                  _loadUsers(); // Perbarui daftar setelah menambahkan data
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text("Simpan"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Fungsi untuk mengedit mahasiswa
+  Future<void> _editUser(int userId, String currentName) async {
+    final nameController = TextEditingController(text: currentName);
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Edit Mahasiswa"),
+          content: TextField(
+            controller: nameController,
+            decoration: const InputDecoration(labelText: "Nama Mahasiswa"),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Batal"),
+            ),
+            TextButton(
+              onPressed: () async {
+                if (nameController.text.isNotEmpty) {
+                  await dbHelper.updateUser({
+                    'user_id': userId,
+                    'name': nameController.text,
+                  });
+                  _loadUsers(); // Perbarui daftar setelah mengedit data
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text("Simpan"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Fungsi untuk menghapus mahasiswa
+  Future<void> _deleteUser(int userId) async {
+    await dbHelper.deleteUser(userId);
+    _loadUsers(); // Perbarui daftar setelah menghapus data
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "Daftar Mahasiswa",
-          style: TextStyle(color: Colors.white),
-        ),
+        title: const Text("Daftar Mahasiswa"),
         backgroundColor: const Color(0xFF00B1C2),
       ),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: users,  // Provide the future to the FutureBuilder
-        builder: (context, snapshot) {
-          // Checking if the future is still loading
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          // If there's an error with fetching the data
-          else if (snapshot.hasError) {
-            return Center(child: Text("Terjadi kesalahan: ${snapshot.error}"));
-          }
-
-          // If there's no data or an empty result
-          else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text("Tidak ada data mahasiswa."));
-          } else {
-            // If the data is available
-            final mahasiswaList = snapshot.data!;
-            return ListView.builder(
-              itemCount: mahasiswaList.length,
+      body: Column(
+        children: [
+          // Search Barr
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: searchController,
+              decoration: InputDecoration(
+                labelText: "Cari mahasiswa...",
+                border: OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.search),
+              ),
+              onChanged: _searchUsers, // Panggil fungsi saat teks berubah
+            ),
+          ),
+          // List Mahasiswa
+          Expanded(
+            child: filteredUsers.isEmpty
+                ? const Center(child: Text("Tidak ada data mahasiswa."))
+                : ListView.builder(
+              itemCount: filteredUsers.length,
               itemBuilder: (context, index) {
-                final mahasiswa = mahasiswaList[index];
-
-                // Assuming your 'Mahasiswa' table has columns like 'id', 'name', 'email', etc.
-                final id = mahasiswa['user_id'].toString();  // Replace with the actual column names in your database
-                final name = mahasiswa['name'].toString();
+                final mahasiswa = filteredUsers[index];
+                final id = mahasiswa['user_id'];
+                final name = mahasiswa['name'];
 
                 return Card(
                   margin: const EdgeInsets.all(8.0),
                   child: ListTile(
-                    leading:Text(id),  // Display ID in avatar
-                    title: Text(name),  // Display student name
-
-                    onTap: () {
-                      // Handle item tap, for example to show detailed info
-                    },
+                    leading: Text(id.toString()), // Menampilkan user_id
+                    title: Text(name), // Menampilkan nama mahasiswa
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.blue),
+                          onPressed: () => _editUser(id, name),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => _deleteUser(id),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },
-            );
-          }
-        },
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _addUser,
+        child: const Icon(Icons.add),
+        backgroundColor: const Color(0xFF00B1C2),
       ),
     );
   }
