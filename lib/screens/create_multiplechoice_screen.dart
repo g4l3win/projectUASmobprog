@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:quizdb/database/database_helper.dart';
 import 'truefalse_final_screen.dart';
 import 'package:quizdb/models/question_model.dart';
-
+import 'package:quizdb/database/question_command.dart';
+import 'package:quizdb/database/quiz_command.dart';
 class MultipleChoiceQuizScreen extends StatefulWidget {
   @override
   _MultipleChoiceQuizScreenState createState() =>
@@ -18,7 +19,8 @@ class _MultipleChoiceQuizScreenState extends State<MultipleChoiceQuizScreen> {
   String correctAnswer = ''; // Store correct answer input
   int? selectedQuizId;
   List<Map<String, dynamic>> quizzes = []; // Store filtered quizzes from the database
-
+  final QuizCommand quizCommand = QuizCommand();
+  final QuestionCommand questionEsaiCommand = QuestionCommand();
   @override
   void initState() {
     super.initState();
@@ -28,7 +30,7 @@ class _MultipleChoiceQuizScreenState extends State<MultipleChoiceQuizScreen> {
   // Fetch only "Pilihan Ganda" quizzes from the database
   Future<void> _fetchQuizzes() async {
     final dbHelper = DatabaseHelper();
-    final allQuizzes = await dbHelper.getAllQuizzes();
+    final allQuizzes = await QuizCommand().getAllQuizzes();
 
     setState(() {
       quizzes = allQuizzes
@@ -50,10 +52,10 @@ class _MultipleChoiceQuizScreenState extends State<MultipleChoiceQuizScreen> {
     return true;
   }
 
-  // Insert question to the database
+  // Insert question to the databasea
   Future<void> _insertQuestion() async {
     try {
-      final dbHelper = DatabaseHelper();
+
       final questionModel = Question(
         quiz_id: selectedQuizId!,
         content: question,
@@ -64,7 +66,7 @@ class _MultipleChoiceQuizScreenState extends State<MultipleChoiceQuizScreen> {
         answer: correctAnswer, // Save the correct answer input
       );
 
-      await dbHelper.insertQuestion(questionModel);
+      await QuestionCommand().insertQuestion(questionModel);
     } catch (e) {
       print("Error inserting question: $e");
     }
