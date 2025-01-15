@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'skor.dart';
-import 'package:quizdb/database/database_helper.dart';
+import 'package:quizdb/database/quiz_command.dart';
+import 'package:quizdb/database/questionBenarSalah_command.dart';
 
 class TrueFalseQuiz extends StatefulWidget {
   final int quizId;
@@ -13,12 +14,14 @@ class TrueFalseQuiz extends StatefulWidget {
 
 class _TrueFalseQuizState extends State<TrueFalseQuiz> {
   int score = 0;
-  int timeLeft = 20; // This can be updated based on data from the database
+  int timeLeft = 20; // This can be updated based on data from the databasea
   Timer? timer;
   double nilai = 0;
   String? subject; // Store subject retrieved from database
   List<Map<String, dynamic>> questionSet = [];
   int currentQuestion = 0;
+  final QuizCommand quizCommand = QuizCommand();
+  final QuestionBenarSalahCommand questionBenarSalahCommand = QuestionBenarSalahCommand();
 
   @override
   void initState() {
@@ -28,7 +31,7 @@ class _TrueFalseQuizState extends State<TrueFalseQuiz> {
 
   Future<void> _initializeQuiz() async {
     // Retrieve quiz data from the database
-    var quizData = await DatabaseHelper().getQuizById(widget.quizId);
+    var quizData = await QuizCommand().getQuizById(widget.quizId);//getQuizById dapatnya dari quiz_command.dart
 
     if (quizData != null) {
       setState(() {
@@ -38,7 +41,7 @@ class _TrueFalseQuizState extends State<TrueFalseQuiz> {
 
       // Fetch questions for the quiz
       final questions =
-      await DatabaseHelper().getQuestionsBenarSalahByQuizId(widget.quizId);
+      await QuestionBenarSalahCommand().getQuestionsBenarSalahByQuizId(widget.quizId);//getquestionbenarsalahbyquizid dari questionbenarsalah_command.dart
       setState(() {
         questionSet = questions.map((question) {
           return {
