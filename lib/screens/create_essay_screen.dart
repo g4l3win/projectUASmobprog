@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:quizdb/database/database_helper.dart';
-import 'package:quizdb/models/questionEsai_model.dart'; // This should be used for the QuestionEsai class
-import 'package:quizdb/models/quiz_model.dart';
-import 'package:quizdb/screens/truefalse_final_screen.dart'; // This should be used for Quiz data if needed
+import 'package:quizdb/database/quiz_command.dart';
+import 'package:quizdb/database/questionEsai_command.dart';
+import 'package:quizdb/screens/truefalse_final_screen.dart';
+
+import '../models/questionEsai_model.dart';
 
 class CreateEssayScreen extends StatefulWidget {
   @override
@@ -14,17 +15,18 @@ class _CreateEssayScreenState extends State<CreateEssayScreen> {
   String question = ''; // To store the question content
   String answer = ''; // To store the correct answer
   List<Map<String, dynamic>> quizzes = []; // Store quizzes from the database
+  final QuizCommand quizCommand = QuizCommand();
+  final QuestionEsaiCommand questionEsaiCommand = QuestionEsaiCommand();
 
   @override
   void initState() {
     super.initState();
-    _fetchQuizzes(); // Fetch quizzes from the database when the screen is initialized
+    _fetchQuizzes();
   }
 
-  // Fetch all quizzes from the database
+  // Fetch all quizzes with type "Esai"a
   Future<void> _fetchQuizzes() async {
-    final dbHelper = DatabaseHelper();
-    final allQuizzes = await dbHelper.getAllQuizzes(); // Fetch all quizzes
+    final allQuizzes = await quizCommand.getAllQuizzes();
     final essayQuizzes = allQuizzes.where((quiz) => quiz.type == "Esai").toList();
 
     setState(() {
@@ -40,7 +42,7 @@ class _CreateEssayScreenState extends State<CreateEssayScreen> {
 
   // Validate the input fields before saving
   bool validateInput() {
-    if (selectedQuizId == null || question.isEmpty || answer.isEmpty) {
+    if (selectedQuizId == null || selectedQuizId == -1 || question.isEmpty || answer.isEmpty) {
       return false;
     }
     return true;
@@ -49,16 +51,13 @@ class _CreateEssayScreenState extends State<CreateEssayScreen> {
   // Insert the essay question into the database
   Future<void> _insertEssayQuestion() async {
     try {
-      final dbHelper = DatabaseHelper();
-
-      // Create a QuestionEsai object and convert it to map
       final questionEsai = QuestionEsai(
         quizId: selectedQuizId!,
         content: question,
         answer: answer,
       );
 
-      await dbHelper.insertQuestionEsai(questionEsai); // Insert question into database
+      await questionEsaiCommand.insertQuestionEsai(questionEsai);
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('Soal esai berhasil ditambahkan!'),
@@ -83,7 +82,6 @@ class _CreateEssayScreenState extends State<CreateEssayScreen> {
         ),
         backgroundColor: Color(0xFF00B1C2),
       ),
-      resizeToAvoidBottomInset: true,
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -100,7 +98,7 @@ class _CreateEssayScreenState extends State<CreateEssayScreen> {
                 },
                 items: [
                   DropdownMenuItem<int>(
-                    value: null,
+                    value: -1,
                     child: Text('Pilih Quiz'),
                   ),
                   ...quizzes.map((quiz) {
@@ -152,8 +150,7 @@ class _CreateEssayScreenState extends State<CreateEssayScreen> {
                 child: ElevatedButton(
                   onPressed: () async {
                     if (validateInput()) {
-                      await _insertEssayQuestion(); // Insert the essay question into the database
-                      Navigator.pop(context); // Go back to the previous screen
+                      await _insertEssayQuestion();
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => TruefalseFinalScreen()),
