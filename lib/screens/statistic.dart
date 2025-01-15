@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:quizdb/database/database_helper.dart';
+import 'package:quizdb/database/quiz_command.dart';
+import 'package:quizdb/database/result_command.dart';
 
 class Statistik extends StatefulWidget {
   final String subject;
@@ -14,9 +15,10 @@ class _Statistik extends State<Statistik> {
   List<int> currentDistribusi = [];
   List<Map<String, dynamic>> quizList = [];
   int totalStudents = 0;
-
+  final QuizCommand quizCommand = QuizCommand();
   List<String> quizTypes = ['Pilihan Ganda', 'Isian', 'Benar Salah'];
   String selectedQuizType = 'Pilihan Ganda';
+  final ResultCommand resultCommand = ResultCommand();
 
   @override
   void initState() {
@@ -26,8 +28,7 @@ class _Statistik extends State<Statistik> {
 
   // Fetch quizzes based on the selected subject
   Future<void> _fetchQuizzesBySubject() async {
-    final dbHelper = DatabaseHelper();
-    final quizzes = await dbHelper.getAllQuizzes();
+    final quizzes = await QuizCommand().getAllQuizzes();
     final subjectQuizzes = quizzes.where((quiz) => quiz.subject == widget.subject).toList();
 
     setState(() {
@@ -42,9 +43,8 @@ class _Statistik extends State<Statistik> {
   }
 
   Future<void> _loadQuizScores(int quizId) async {
-    final dbHelper = DatabaseHelper();
-    final scores = await dbHelper.getScoresByQuizId(quizId);
-    final studentCount = await dbHelper.getTotalStudentsByQuizId(quizId);
+    final scores = await ResultCommand().getScoresByQuizId(quizId);
+    final studentCount = await ResultCommand().getTotalStudentsByQuizId(quizId);
 
     setState(() {
       currentDistribusi = _calculateScoreDistribution(scores);

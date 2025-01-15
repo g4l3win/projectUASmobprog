@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
-import 'package:quizdb/database/database_helper.dart';
+import 'package:quizdb/database/mahasiswa_command.dart';
 import 'package:quizdb/models/result_model.dart';
+import 'package:quizdb/database/result_command.dart';
 
 class ResultsPage extends StatefulWidget {
   final double currentScore;
@@ -22,16 +23,18 @@ class _ResultsPageState extends State<ResultsPage> {
   int? selectedUserId;
   String? selectedUserName;
   List<Map<String, dynamic>> users = [];
+  final MahasiswaCommand mahasiswaCommand = MahasiswaCommand();
+  final ResultCommand resultCommand = ResultCommand();
 
   @override
   void initState() {
     super.initState();
-    _fetchUsers(); // Memuat daftar user saat halaman dimulai
+    _fetchUsers(); // Memuat daftar user saat halaman dimulaia
   }
 
-  // Fungsi untuk mengambil daftar user dari database
+  // Fungsi untuk mengambil daftar user mahasiswa dari database
   Future<void> _fetchUsers() async {
-    final userList = await DatabaseHelper().getUsers(); // Ambil daftar user dari database
+    final userList = await mahasiswaCommand.getUsers(); // Ambil daftar user dari database
     setState(() {
       users = userList;
     });
@@ -46,7 +49,7 @@ class _ResultsPageState extends State<ResultsPage> {
         score: widget.currentScore,
       );
 
-      await DatabaseHelper().insertResult(result); // Menyimpan data hasil ke database
+      await ResultCommand().insertResult(result); // Menyimpan data hasil ke database
 
       // Menampilkan pesan sukses
       ScaffoldMessenger.of(context).showSnackBar(

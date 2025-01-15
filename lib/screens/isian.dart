@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'skor.dart';
 import 'package:quizdb/database/database_helper.dart';
-
+import 'package:quizdb/database/quiz_command.dart';
+import 'package:quizdb/database/questionEsai_command.dart';
 class EssayQuiz extends StatefulWidget {
   final int quizId;
   EssayQuiz({required this.quizId});
@@ -20,6 +21,8 @@ class _EssayQuizState extends State<EssayQuiz> {
   List<Map<String, dynamic>> questionSet = [];
   int currentQuestion = 0;
   TextEditingController answerController = TextEditingController();
+  final QuizCommand quizCommand = QuizCommand();
+  final QuestionEsaiCommand questionEsaiCommand = QuestionEsaiCommand();
 
   @override
   void initState() {
@@ -28,8 +31,8 @@ class _EssayQuizState extends State<EssayQuiz> {
   }
 
   Future<void> _initializeQuiz() async {
-    // Fetch quiz data from the database
-    var quizData = await DatabaseHelper().getQuizById(widget.quizId);
+    // Fetch quiz data from the databasea
+    var quizData = await QuizCommand().getQuizById(widget.quizId);
     if (quizData != null) {
       setState(() {
         timeLeft = quizData['timer'] as int; // Ensure the data type is correct
@@ -37,7 +40,7 @@ class _EssayQuizState extends State<EssayQuiz> {
       });
 
       // Fetch all questions, options, and correct answers based on quizId
-      final questions = await DatabaseHelper().getQuestionsEsaiByQuizId(widget.quizId);
+      final questions = await QuestionEsaiCommand().getQuestionsEsaiByQuizId(widget.quizId);
       setState(() {
         questionSet = questions.map((question) {
           return {

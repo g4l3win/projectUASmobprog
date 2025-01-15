@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'skor.dart';
-import 'package:quizdb/database/database_helper.dart';
+import 'package:quizdb/database/quiz_command.dart';
+import 'package:quizdb/database/question_command.dart';
 
 class Pilihanganda extends StatefulWidget {
   final int quizId;
@@ -13,13 +14,14 @@ class Pilihanganda extends StatefulWidget {
 
 class _PilihangandaState extends State<Pilihanganda> {
   int score = 0;
-  int timeLeft = 20; // This will be updated from the database
+  int timeLeft = 20; // This will be updated from the databasea
   Timer? timer;
   double nilai = 0;
   String? subject; // To store the subject obtained from the database
   List<Map<String, dynamic>> questionSet = [];
   int currentQuestion = 0;
-
+  final QuizCommand quizCommand = QuizCommand();
+  final QuestionCommand questionCommand = QuestionCommand();
   @override
   void initState() {
     super.initState();
@@ -28,7 +30,7 @@ class _PilihangandaState extends State<Pilihanganda> {
 
   Future<void> _initializeQuiz() async {
     // Fetch quiz data from the database
-    var quizData = await DatabaseHelper().getQuizById(widget.quizId);
+    var quizData = await QuizCommand().getQuizById(widget.quizId);
     if (quizData != null) {
       setState(() {
         timeLeft = quizData['timer'] as int; // Ensure the data type is correct
@@ -36,7 +38,7 @@ class _PilihangandaState extends State<Pilihanganda> {
       });
 
       // Fetch all questions, options, and correct answers based on quizId
-      final questions = await DatabaseHelper().getQuestionsByQuizId(widget.quizId);
+      final questions = await QuestionCommand().getQuestionsByQuizId(widget.quizId);
       setState(() {
         questionSet = questions.map((question) {
           return {

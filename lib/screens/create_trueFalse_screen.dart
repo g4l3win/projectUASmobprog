@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:quizdb/database/database_helper.dart';
 import 'package:quizdb/models/questionBenarSalah_model.dart';
 import 'package:quizdb/screens/truefalse_final_screen.dart'; // Screen to navigate after saving
-
+import 'package:quizdb/database/questionBenarSalah_command.dart';
+import 'package:quizdb/database/quiz_command.dart';
 class CreateTrueFalseScreen extends StatefulWidget {
   @override
   _CreateTrueFalseScreenState createState() => _CreateTrueFalseScreenState();
@@ -12,7 +13,9 @@ class _CreateTrueFalseScreenState extends State<CreateTrueFalseScreen> {
   int? selectedQuizId; // To store the selected quiz ID
   String questionContent = ''; // To store the question content
   String answer = ''; // To store the correct answer (either "true" or "false")
-  List<Map<String, dynamic>> quizzes = []; // Store quizzes from the database
+  List<Map<String, dynamic>> quizzes = []; // Store quizzes from the databasea
+  final QuizCommand quizCommand = QuizCommand();
+  final QuestionBenarSalahCommand questionBenarSalahCommand = QuestionBenarSalahCommand();
 
   @override
   void initState() {
@@ -23,7 +26,7 @@ class _CreateTrueFalseScreenState extends State<CreateTrueFalseScreen> {
   // Fetch all quizzes from the database
   Future<void> _fetchQuizzes() async {
     final dbHelper = DatabaseHelper();
-    final allQuizzes = await dbHelper.getAllQuizzes(); // Fetch all quizzes
+    final allQuizzes = await QuizCommand().getAllQuizzes(); // Fetch all quizzes
     final trueFalseQuizzes = allQuizzes.where((quiz) => quiz.type == "Benar/Salah").toList();
     setState(() {
       quizzes = trueFalseQuizzes.map((quiz) {
@@ -47,7 +50,6 @@ class _CreateTrueFalseScreenState extends State<CreateTrueFalseScreen> {
   // Insert the true/false question into the database
   Future<void> _insertTrueFalseQuestion() async {
     try {
-      final dbHelper = DatabaseHelper();
 
       // Create a QuestionBenarSalah object and convert it to map
       final questionBenarSalah = QuestionBenarSalah(
@@ -56,7 +58,7 @@ class _CreateTrueFalseScreenState extends State<CreateTrueFalseScreen> {
         answer: answer,
       );
 
-      await dbHelper.insertQuestionBenarSalah(questionBenarSalah.toMap()); // Insert question into database
+      await QuestionBenarSalahCommand().insertQuestionBenarSalah(questionBenarSalah.toMap()); // Insert question into database
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('Soal benar/salah berhasil ditambahkan!'),

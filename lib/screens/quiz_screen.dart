@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:quizdb/database/database_helper.dart';
 
+import 'package:quizdb/database/quiz_command.dart';
 import 'pilihanganda.dart';
 import 'benarsalah.dart';
 import 'isian.dart';
 
 class QuizHomePage extends StatefulWidget {
-  final String subject; // Receives subject from the previous page
+  final String subject; // Receives subject from the previous pagea
 
-  QuizHomePage({required this.subject});
+  QuizHomePage({required this.subject});// ini inherited widget
 
   @override
   _QuizHomePageState createState() => _QuizHomePageState();
@@ -16,7 +16,7 @@ class QuizHomePage extends StatefulWidget {
 
 class _QuizHomePageState extends State<QuizHomePage> {
   List<Map<String, dynamic>> quizList = [];
-
+  final QuizCommand quizCommand = QuizCommand();
   @override
   void initState() {
     super.initState();
@@ -25,8 +25,8 @@ class _QuizHomePageState extends State<QuizHomePage> {
 
   // Fetch quizzes based on the selected subject
   Future<void> _fetchQuizzesBySubject() async {
-    final dbHelper = DatabaseHelper();
-    final quizzes = await dbHelper.getAllQuizzes();
+
+    final quizzes = await QuizCommand().getAllQuizzes();
     final subjectQuizzes = quizzes.where((quiz) => quiz.subject == widget.subject).toList();
 
     setState(() {

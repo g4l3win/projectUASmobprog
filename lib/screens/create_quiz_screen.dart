@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:quizdb/database/database_helper.dart';
 import 'package:quizdb/models/quiz_model.dart';
 import 'package:quizdb/screens/create_trueFalse_screen.dart';
 import 'create_multiplechoice_screen.dart';
 import 'create_essay_screen.dart';
+import 'package:quizdb/database/quiz_command.dart';
 
 class CreateQuizScreen extends StatefulWidget {
   @override
@@ -15,8 +15,9 @@ class _CreateQuizScreenState extends State<CreateQuizScreen> {
   String? selectedCategory;
   String? selectedType;
   int? selectedTimer;
+  final QuizCommand quizCommand = QuizCommand();
 
-  // Controllers
+  // Controllersa
   final TextEditingController titleController = TextEditingController();
   final List<String> subjects = ["Web Programming", "Algorithm", "Database Systems", "Mobile Programming"];
   final List<String> types = ["Pilihan Ganda", "Esai", "Benar/Salah"];
@@ -42,7 +43,7 @@ class _CreateQuizScreenState extends State<CreateQuizScreen> {
       );
 
       // Insert data into the database
-      await DatabaseHelper().insertQuiz(quiz);
+      await QuizCommand().insertQuiz(quiz);
 
       // Show a success message
       ScaffoldMessenger.of(context).showSnackBar(
