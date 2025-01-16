@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'skor.dart';
-import 'package:quizdb/database/database_helper.dart';
 import 'package:quizdb/database/quiz_command.dart';
 import 'package:quizdb/database/questionEsai_command.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
+
 class EssayQuiz extends StatefulWidget {
   final int quizId;
   EssayQuiz({required this.quizId});
@@ -36,11 +37,13 @@ class _EssayQuizState extends State<EssayQuiz> {
     if (quizData != null) {
       setState(() {
         timeLeft = quizData['timer'] as int; // Ensure the data type is correct
-        subject = quizData['subject'] as String; // Ensure the data type is correct
+        subject =
+            quizData['subject'] as String; // Ensure the data type is correct
       });
 
       // Fetch all questions, options, and correct answers based on quizId
-      final questions = await QuestionEsaiCommand().getQuestionsEsaiByQuizId(widget.quizId);
+      final questions =
+          await QuestionEsaiCommand().getQuestionsEsaiByQuizId(widget.quizId);
       setState(() {
         questionSet = questions.map((question) {
           return {
@@ -95,14 +98,33 @@ class _EssayQuizState extends State<EssayQuiz> {
   }
 
   void _showResultPage() {
+    // Calculate the current score percentage
+    double currentScore = (score / questionSet.length) * 100;
+
+    // Menampilkan notifikasi dengan currentScore
+    showCompletionNotification(currentScore);
+
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => ResultsPage(
-          currentScore: (score / questionSet.length) * 100,
+          currentScore: currentScore,
           subject: subject ?? "Essay Quiz",
           quizId: widget.quizId,
         ),
+      ),
+    );
+  }
+
+// Fungsi untuk menampilkan notifikasi setelah soal dijawab
+  void showCompletionNotification(double currentScore) {
+    AwesomeNotifications().createNotification(
+      content: NotificationContent(
+        id: 10,
+        channelKey: 'basic_channel',
+        title: 'Quiz Completed!',
+        body:
+            'Subject: $subject\nFinal Score: ${currentScore.toStringAsFixed(2)}%',
       ),
     );
   }

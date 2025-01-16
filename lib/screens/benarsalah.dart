@@ -3,6 +3,7 @@ import 'dart:async';
 import 'skor.dart';
 import 'package:quizdb/database/quiz_command.dart';
 import 'package:quizdb/database/questionBenarSalah_command.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
 
 class TrueFalseQuiz extends StatefulWidget {
   final int quizId;
@@ -21,7 +22,8 @@ class _TrueFalseQuizState extends State<TrueFalseQuiz> {
   List<Map<String, dynamic>> questionSet = [];
   int currentQuestion = 0;
   final QuizCommand quizCommand = QuizCommand();
-  final QuestionBenarSalahCommand questionBenarSalahCommand = QuestionBenarSalahCommand();
+  final QuestionBenarSalahCommand questionBenarSalahCommand =
+      QuestionBenarSalahCommand();
 
   @override
   void initState() {
@@ -31,7 +33,8 @@ class _TrueFalseQuizState extends State<TrueFalseQuiz> {
 
   Future<void> _initializeQuiz() async {
     // Retrieve quiz data from the database
-    var quizData = await QuizCommand().getQuizById(widget.quizId);//getQuizById dapatnya dari quiz_command.dart
+    var quizData = await QuizCommand().getQuizById(
+        widget.quizId); //getQuizById dapatnya dari quiz_command.dart
 
     if (quizData != null) {
       setState(() {
@@ -40,8 +43,9 @@ class _TrueFalseQuizState extends State<TrueFalseQuiz> {
       });
 
       // Fetch questions for the quiz
-      final questions =
-      await QuestionBenarSalahCommand().getQuestionsBenarSalahByQuizId(widget.quizId);//getquestionbenarsalahbyquizid dari questionbenarsalah_command.dart
+      final questions = await QuestionBenarSalahCommand()
+          .getQuestionsBenarSalahByQuizId(widget
+              .quizId); //getquestionbenarsalahbyquizid dari questionbenarsalah_command.dart
       setState(() {
         questionSet = questions.map((question) {
           return {
@@ -93,14 +97,32 @@ class _TrueFalseQuizState extends State<TrueFalseQuiz> {
   }
 
   void _showResultPage() {
+    // Calculate the current score percentage
+    double currentScore = (score / questionSet.length) * 100;
+
+    // Menampilkan notifikasi dengan currentScore
+    showCompletionNotification(currentScore);
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => ResultsPage(
-          currentScore: (score / questionSet.length) * 100,
+          currentScore: currentScore,
           subject: subject ?? "True/False Quiz",
           quizId: widget.quizId,
         ),
+      ),
+    );
+  }
+
+  // Fungsi untuk menampilkan notifikasi setelah soal dijawab
+  void showCompletionNotification(double currentScore) {
+    AwesomeNotifications().createNotification(
+      content: NotificationContent(
+        id: 10,
+        channelKey: 'basic_channel',
+        title: 'Quiz Completed!',
+        body:
+            'Subject: $subject\nFinal Score: ${currentScore.toStringAsFixed(2)}%',
       ),
     );
   }
@@ -222,4 +244,3 @@ class _TrueFalseQuizState extends State<TrueFalseQuiz> {
     );
   }
 }
-
